@@ -1,0 +1,5 @@
+bin/
+build/
+roms/chip8/
+.cache/
+roms/launch.ini
