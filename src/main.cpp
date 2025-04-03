@@ -19,7 +19,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClearColor(0.5f, 0.3f, 0.3f, 1.0f);
+        glClearColor(1.0f, 0.3f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

@@ -28,17 +28,5 @@ bwr:
 	@cmake -B build -S . --preset windows-release
 	@cmake --build build
 
-bvd:
-	@cmake -B build -S . --preset vita-debug
-	@cmake --build build
-	@mkdir -p bin
-	@cp build/edra.vpk bin/edra.vpk
-
-bvr:
-	@cmake -B build -S . --preset vita-release
-	@cmake --build build
-	@mkdir -p bin
-	@cp build/edra.vpk bin/edra.vpk
-
 r:
-	@./bin/${TARGET} ./roms/launch.ini
+	@./build/${TARGET}

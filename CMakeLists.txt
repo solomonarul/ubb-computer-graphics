@@ -38,4 +38,13 @@ target_compile_definitions(
         BUILD_TYPE_${CMAKE_BUILD_PLATFORM}
 )
 
+find_package(OpenGL REQUIRED COMPONENTS OpenGL)
+
+target_link_libraries(
+    ${PROJECT_NAME}
+    PUBLIC
+        glfw
+        OpenGL::OpenGL
+)
+
 install(TARGETS ${PROJECT_NAME})
