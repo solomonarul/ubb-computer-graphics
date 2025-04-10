@@ -5,20 +5,19 @@ mod cube_shader;
 mod cube;
 mod transform;
 
-struct App
-{
+struct App {
     pipeline: Pipeline,
     bindings: Bindings,
     ctx: Box<dyn RenderingBackend>,
+    angle: f32,
 }
 
 impl App
 {
-    pub fn new() -> App
-    {
+    pub fn new() -> App {
         let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
         log::info!("OpenGL Version: {}", ctx.info().gl_version_string);
-
+    
         let vertex_buffer = ctx.new_buffer(
             BufferType::VertexBuffer,
             BufferUsage::Immutable,
@@ -29,13 +28,13 @@ impl App
             BufferUsage::Immutable,
             BufferSource::slice(&cube::INDICES),
         );
-
+    
         let bindings = Bindings {
             vertex_buffers: vec![vertex_buffer],
             index_buffer: index_buffer,
             images: vec![],
         };
-
+    
         let shader = ctx
             .new_shader(
                 match ctx.info().backend {
@@ -46,21 +45,26 @@ impl App
                     Backend::Metal => panic!("Metal not supported!"),
                 },
                 cube_shader::meta(),
-            ).expect("Could not compile passthrough_shader");
-
+            ).expect("Could not compile cube_shader");
+    
         let pipeline = ctx.new_pipeline(
             &[BufferLayout::default()],
             &[
                 VertexAttribute::new("vertex_pos", VertexFormat::Float4)
             ],
             shader,
-            PipelineParams::default(),
+            PipelineParams {
+                depth_test: Comparison::LessOrEqual,
+                depth_write: true,
+                ..Default::default()
+            },
         );
-
+    
         App {
             pipeline,
             bindings,
             ctx,
+            angle: 0.0,
         }
     }
 }
@@ -69,7 +73,7 @@ impl EventHandler for App
 {
     fn update(&mut self)
     {
-
+        self.angle += 0.001 * 360.;
     }
 
     fn draw(&mut self)
@@ -77,22 +81,30 @@ impl EventHandler for App
         // Clear the screen with nice defaults.
         self.ctx.begin_default_pass(PassAction::Clear {
             color: Some((0.12, 0.12, 0.12, 1.0)),
-            depth: Default::default(),
+            depth: Some(1.0),
             stencil: Default::default()
         });
 
         // Calculate the camera's matrixes.
         let (width, height) = window::screen_size();
         let camera_projection = glam::Mat4::perspective_rh_gl(
-            40.0f32.to_radians(), 
-            width / height, 
-            0.01, 50.0
+            40.0f32.to_radians(),
+            width / height,
+            0.01,
+            50.0,
         );
+        
+        // Orbit around Y axis at a fixed radius
+        let radius = 30.0;
+        let cam_x = self.angle.to_radians().cos() * radius;
+        let cam_z = self.angle.to_radians().sin() * radius;
+        
         let camera_view = glam::Mat4::look_at_rh(
-            glam::vec3(30.0, 30.0, 0.0),
-            glam::vec3(0.0, 10.0, -10.0),
-            glam::vec3(0.0, 1.0, 0.0),
+            glam::vec3(cam_x, 30.0, cam_z),             // orbiting position
+            glam::vec3(0.0, 10.0, -10.0),       // target
+            glam::vec3(0.0, 1.0, 0.0),              // up
         );
+        
         let vp = camera_projection * camera_view;
 
         // Apply our pipelines.
@@ -144,14 +156,6 @@ fn main()
     conf.window_height = 480;
     conf.window_resizable = false;
     conf.platform.swap_interval = Some(1);
-
-    // Use Metal on Apple devices if it has been given as an argument.
-    /*let metal = std::env::args().nth(1).as_deref() == Some("metal");
-    conf.platform.apple_gfx_api = if metal {
-        conf::AppleGfxApi::Metal
-    } else {
-        conf::AppleGfxApi::OpenGl
-    };*/
 
     // Start window.
     miniquad::start(conf, move || Box::new(App::new()));
