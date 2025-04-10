@@ -1,0 +1,10 @@
+[package]
+name = "grafica"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+miniquad = { git = "https://github.com/not-fl3/miniquad.git" }
+glam = { git = "https://github.com/bitshifter/glam-rs" }
+log = { version = "*" }
+env_logger = { version = "*" }
