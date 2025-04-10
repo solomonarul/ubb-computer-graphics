@@ -88,26 +88,29 @@ impl EventHandler for App
         // Calculate the camera's matrixes.
         let (width, height) = window::screen_size();
         let camera_projection = glam::Mat4::perspective_rh_gl(
-            40.0f32.to_radians(),
+            45.0f32.to_radians(),
             width / height,
             0.01,
-            50.0,
+            250.0,
         );
         
-        // Orbit around Y axis at a fixed radius
-        let radius = 30.0;
-        let cam_x = self.angle.to_radians().cos() * radius;
-        let cam_z = self.angle.to_radians().sin() * radius;
+        // Orbit camera around Y axis.
+        let pivot = glam::vec3(0.0, 10.0, -10.0);
+        let original_pos = glam::vec3(30.0, 30.0, 0.0);
+        let offset = original_pos - pivot;
         
+        // Rotate
+        let rotation = glam::Mat4::from_rotation_y(self.angle.to_radians());
+        let rotated_offset = rotation.transform_vector3(offset);
+        let camera_position = pivot + rotated_offset;
         let camera_view = glam::Mat4::look_at_rh(
-            glam::vec3(cam_x, 30.0, cam_z),             // orbiting position
-            glam::vec3(0.0, 10.0, -10.0),       // target
-            glam::vec3(0.0, 1.0, 0.0),              // up
+            camera_position,
+            pivot,
+            glam::vec3(0.0, 1.0, 0.0),
         );
-        
         let vp = camera_projection * camera_view;
 
-        // Apply our pipelines.
+        // Apply pipelines.
         self.ctx.apply_pipeline(&self.pipeline);
         self.ctx.apply_bindings(&self.bindings);
         
